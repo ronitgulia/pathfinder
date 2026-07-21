@@ -68,3 +68,30 @@
   background-color: #fee2e2;
   color: #ef4444;
 }
+
+@media (max-width: 768px) {
+  .sidebar-brand {
+    padding: 0 0 1rem 0;
+    justify-content: center;
+  }
+
+  .sidebar-nav {
+    flex-direction: row;
+    overflow-x: auto;
+    padding-bottom: 0.5rem;
+    gap: 1rem;
+  }
+
+  .nav-link {
+    padding: 0.5rem;
+    white-space: nowrap;
+  }
+
+  .nav-link span {
+    display: none; /* Hide text, only show icons on small screens */
+  }
+
+  .sidebar-footer {
+    display: none; /* Hide logout on mobile to save space, or move it elsewhere */
+  }
+}
