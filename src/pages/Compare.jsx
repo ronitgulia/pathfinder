@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { Scale, Check } from 'lucide-react';
+import React from 'react';
+import { Scale } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import './ExploreCareers.css'; // Reusing layout
 

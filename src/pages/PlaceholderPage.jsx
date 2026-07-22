@@ -1,7 +1,10 @@
 import React from 'react';
-import { Settings, Sparkles } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
+import { Sparkles } from 'lucide-react';
 
 export default function PlaceholderPage({ title }) {
+  const navigate = useNavigate();
+
   return (
     <div className="card" style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '60vh', textAlign: 'center' }}>
       <div style={{ padding: '2rem', backgroundColor: 'var(--color-bg-body)', borderRadius: 'var(--radius-full)', marginBottom: '1.5rem' }}>
@@ -11,7 +14,7 @@ export default function PlaceholderPage({ title }) {
       <p style={{ color: 'var(--color-text-muted)', maxWidth: '400px', marginTop: '1rem' }}>
         This module is currently being powered up by our AI engine. Check back soon for personalized insights!
       </p>
-      <button className="btn btn-primary" style={{ marginTop: '2rem' }}>
+      <button className="btn btn-primary" style={{ marginTop: '2rem' }} onClick={() => navigate('/dashboard')}>
         Return to Dashboard
       </button>
     </div>

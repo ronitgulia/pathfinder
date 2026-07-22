@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, Bookmark, Briefcase, GraduationCap, TrendingUp, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { Bookmark, Briefcase, GraduationCap, TrendingUp, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import './Recommendations.css';
 

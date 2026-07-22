@@ -14,14 +14,17 @@ export const AuthProvider = ({ children }) => {
     if (storedUser) {
       try {
         setUser(JSON.parse(storedUser));
-      } catch (e) {
-        console.error('Failed to parse user from localStorage');
+      } catch (error) {
+        console.error('Failed to parse user from localStorage:', error);
       }
     }
     setIsLoading(false);
   }, []);
 
   const login = (email, password) => {
+    if (!email || !password) {
+      return false;
+    }
     // Mock login logic
     const mockUser = {
       name: email.split('@')[0],
@@ -35,11 +38,14 @@ export const AuthProvider = ({ children }) => {
   };
 
   const register = (name, email, password, grade) => {
+    if (!name || !email || !password) {
+      return false;
+    }
     // Mock register logic
     const mockUser = {
       name,
       email,
-      grade,
+      grade: grade || 'Grade 10',
       initials: name.charAt(0).toUpperCase()
     };
     setUser(mockUser);

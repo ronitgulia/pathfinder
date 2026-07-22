@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { User, CheckCircle2 } from 'lucide-react';
+import { User } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import './AptitudeTest.css'; // Reusing quiz styles
 
