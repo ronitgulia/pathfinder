@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Search, Filter, Bookmark, Briefcase, TrendingUp } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { getSavedCareers, saveCareer } from '../utils/storage';
 import './ExploreCareers.css';
 
 const MOCK_CAREERS = [
@@ -18,13 +19,23 @@ export default function ExploreCareers() {
   const [saved, setSaved] = useState([]);
   const { addToast } = useToast();
 
-  const toggleSave = (id, title) => {
-    if (saved.includes(id)) {
-      setSaved(saved.filter(c => c !== id));
-      addToast(`Removed ${title} from saved.`, 'info');
+  useEffect(() => {
+    const loadSaved = () => {
+      const savedItems = getSavedCareers();
+      setSaved(savedItems.map(c => c.id));
+    };
+    loadSaved();
+
+    window.addEventListener('pathfinder-storage-change', loadSaved);
+    return () => window.removeEventListener('pathfinder-storage-change', loadSaved);
+  }, []);
+
+  const toggleSave = (career) => {
+    const isNowSaved = saveCareer(career);
+    if (isNowSaved) {
+      addToast(`Saved ${career.title} to your profile.`, 'success');
     } else {
-      setSaved([...saved, id]);
-      addToast(`Saved ${title} to your profile.`, 'success');
+      addToast(`Removed ${career.title} from saved.`, 'info');
     }
   };
 
@@ -72,7 +83,8 @@ export default function ExploreCareers() {
               <span className="category-pill">{career.category}</span>
               <button 
                 className={`save-btn ${saved.includes(career.id) ? 'active' : ''}`}
-                onClick={() => toggleSave(career.id, career.title)}
+                onClick={() => toggleSave(career)}
+                title={saved.includes(career.id) ? 'Unsave career' : 'Save career'}
               >
                 <Bookmark size={18} fill={saved.includes(career.id) ? 'currentColor' : 'none'} />
               </button>

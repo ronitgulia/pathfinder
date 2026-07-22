@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Brain, ArrowRight, ArrowLeft, CheckCircle2, AlertCircle } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { setAssessmentCompleted } from '../utils/storage';
 import './AptitudeTest.css';
 
 const MOCK_QUESTIONS = [
@@ -64,6 +65,7 @@ export default function AptitudeTest() {
     addToast('Analyzing your responses with AI...', 'info', 2000);
     setIsSubmitted(true);
     
+    setAssessmentCompleted('aptitude');
     setTimeout(() => {
       addToast('Aptitude Test Completed Successfully!', 'success');
       navigate('/dashboard');

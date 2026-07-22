@@ -1,11 +1,13 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Download, Share2, CheckCircle2, Trophy, Star, Target, Brain, Bookmark } from 'lucide-react';
+import { Download, Share2, CheckCircle2, Circle, Trophy, Star, Target, Brain, Bookmark, Trash2, ArrowUpRight } from 'lucide-react';
 import { 
   Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Cell
 } from 'recharts';
 import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/AuthContext';
+import { getSavedCareers, removeCareer, getAssessmentsState } from '../utils/storage';
 import './Dashboard.css';
 
 const aptitudeData = [
@@ -26,7 +28,22 @@ const interestData = [
 
 export default function Dashboard() {
   const { addToast } = useToast();
+  const { user } = useAuth();
   const navigate = useNavigate();
+
+  const [savedCareers, setSavedCareers] = useState([]);
+  const [assessments, setAssessments] = useState({ aptitude: true, interests: true, personality: true });
+
+  const loadData = () => {
+    setSavedCareers(getSavedCareers());
+    setAssessments(getAssessmentsState());
+  };
+
+  useEffect(() => {
+    loadData();
+    window.addEventListener('pathfinder-storage-change', loadData);
+    return () => window.removeEventListener('pathfinder-storage-change', loadData);
+  }, []);
 
   const handleDownload = () => {
     addToast('Generating PDF Report... Download will start shortly.', 'info');
@@ -37,12 +54,25 @@ export default function Dashboard() {
     addToast('Report link copied to clipboard. You can now share it with your parents.', 'success');
   };
 
+  const handleRemoveCareer = (e, id, title) => {
+    e.stopPropagation();
+    removeCareer(id);
+    addToast(`Removed ${title} from saved careers`, 'info');
+  };
+
+  const completedCount = [assessments.aptitude, assessments.interests, assessments.personality].filter(Boolean).length;
+  const progressPercent = Math.round((completedCount / 3) * 100);
+
   return (
     <div className="dashboard">
       <div className="dashboard-header">
         <div>
-          <h1>Welcome back, Student! 👋</h1>
-          <p className="subtitle">All assessments complete — explore your recommendations!</p>
+          <h1>Welcome back, {user?.name || 'Student'}! 👋</h1>
+          <p className="subtitle">
+            {completedCount === 3
+              ? 'All assessments complete — explore your personalized recommendations!'
+              : `${completedCount} of 3 assessments finished. Complete remaining to boost accuracy.`}
+          </p>
         </div>
         <div className="header-actions">
           <button className="btn btn-outline" onClick={handleDownload}>
@@ -68,20 +98,26 @@ export default function Dashboard() {
                     a 15.9155 15.9155 0 0 1 0 -31.831"
                 />
                 <path className="circle"
-                  strokeDasharray="100, 100"
+                  strokeDasharray={`${progressPercent}, 100`}
                   d="M18 2.0845
                     a 15.9155 15.9155 0 0 1 0 31.831
                     a 15.9155 15.9155 0 0 1 0 -31.831"
                 />
-                <text x="18" y="20.35" className="percentage">100%</text>
+                <text x="18" y="20.35" className="percentage">{progressPercent}%</text>
               </svg>
             </div>
             <div className="progress-details">
-              <p>3/3 completed</p>
+              <p>{completedCount}/3 completed</p>
               <ul>
-                <li><CheckCircle2 size={14} className="check-icon" /> Aptitude Test</li>
-                <li><CheckCircle2 size={14} className="check-icon" /> Interests</li>
-                <li><CheckCircle2 size={14} className="check-icon" /> Personality</li>
+                <li style={{ color: assessments.aptitude ? 'var(--color-secondary)' : 'var(--color-text-muted)' }}>
+                  {assessments.aptitude ? <CheckCircle2 size={14} className="check-icon" /> : <Circle size={14} />} Aptitude Test
+                </li>
+                <li style={{ color: assessments.interests ? 'var(--color-secondary)' : 'var(--color-text-muted)' }}>
+                  {assessments.interests ? <CheckCircle2 size={14} className="check-icon" /> : <Circle size={14} />} Interests
+                </li>
+                <li style={{ color: assessments.personality ? 'var(--color-secondary)' : 'var(--color-text-muted)' }}>
+                  {assessments.personality ? <CheckCircle2 size={14} className="check-icon" /> : <Circle size={14} />} Personality
+                </li>
               </ul>
             </div>
           </div>
@@ -111,13 +147,40 @@ export default function Dashboard() {
 
         <div className="card widget-saved">
           <div className="widget-header-row">
-            <h3>Saved Careers</h3>
+            <h3>Saved Careers ({savedCareers.length})</h3>
             <button className="link-btn" onClick={() => navigate('/recommendations')}>View all</button>
           </div>
-          <div className="saved-empty">
-            <Bookmark size={24} className="bookmark-icon" />
-            <p>Bookmark careers you like to revisit them here.</p>
-          </div>
+          {savedCareers.length === 0 ? (
+            <div className="saved-empty">
+              <Bookmark size={24} className="bookmark-icon" />
+              <p>Bookmark careers in Recommendations or Explore to revisit them here.</p>
+            </div>
+          ) : (
+            <div className="saved-careers-list">
+              {savedCareers.slice(0, 3).map((career) => (
+                <div 
+                  key={career.id} 
+                  className="saved-career-item"
+                  onClick={() => navigate('/recommendations')}
+                >
+                  <div className="saved-career-meta">
+                    <span className="saved-career-title">{career.title}</span>
+                    <span className="saved-career-sub">{career.category} • {career.match || 90}% match</span>
+                  </div>
+                  <div className="saved-career-actions">
+                    <button 
+                      className="saved-remove-btn" 
+                      title="Remove"
+                      onClick={(e) => handleRemoveCareer(e, career.id, career.title)}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                    <ArrowUpRight size={14} className="saved-arrow" />
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
       </div>
 

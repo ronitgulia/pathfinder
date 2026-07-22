@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Bookmark, Briefcase, GraduationCap, TrendingUp, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { getSavedCareers, saveCareer } from '../utils/storage';
 import './Recommendations.css';
 
 const RECOMMENDATIONS = [
@@ -54,13 +55,23 @@ export default function Recommendations() {
   const [savedCareers, setSavedCareers] = useState([]);
   const { addToast } = useToast();
 
-  const toggleSave = (id, title) => {
-    if (savedCareers.includes(id)) {
-      setSavedCareers(savedCareers.filter(cId => cId !== id));
-      addToast(`Removed ${title} from saved careers`, 'info');
+  useEffect(() => {
+    const loadSaved = () => {
+      const saved = getSavedCareers();
+      setSavedCareers(saved.map(c => c.id));
+    };
+    loadSaved();
+
+    window.addEventListener('pathfinder-storage-change', loadSaved);
+    return () => window.removeEventListener('pathfinder-storage-change', loadSaved);
+  }, []);
+
+  const toggleSave = (career) => {
+    const isNowSaved = saveCareer(career);
+    if (isNowSaved) {
+      addToast(`Saved ${career.title} to your careers list!`, 'success');
     } else {
-      setSavedCareers([...savedCareers, id]);
-      addToast(`Saved ${title} to your careers list!`, 'success');
+      addToast(`Removed ${career.title} from saved careers`, 'info');
     }
   };
 
@@ -93,7 +104,7 @@ export default function Recommendations() {
               </div>
               <button 
                 className={`bookmark-btn ${savedCareers.includes(career.id) ? 'saved' : ''}`}
-                onClick={() => toggleSave(career.id, career.title)}
+                onClick={() => toggleSave(career)}
                 title={savedCareers.includes(career.id) ? "Unsave career" : "Save career"}
               >
                 <Bookmark size={20} fill={savedCareers.includes(career.id) ? "currentColor" : "none"} />

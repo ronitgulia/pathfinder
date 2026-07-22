@@ -169,6 +169,72 @@
   max-width: 80%;
 }
 
+.saved-careers-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.saved-career-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.75rem;
+  background-color: var(--color-bg-body);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.saved-career-item:hover {
+  border-color: var(--color-primary);
+  transform: translateX(2px);
+}
+
+.saved-career-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.saved-career-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-text-main);
+}
+
+.saved-career-sub {
+  font-size: 0.75rem;
+  color: var(--color-text-muted);
+}
+
+.saved-career-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.saved-remove-btn {
+  color: var(--color-text-muted);
+  padding: 4px;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+}
+
+.saved-remove-btn:hover {
+  color: #ef4444;
+  background-color: #fee2e2;
+}
+
+.saved-arrow {
+  color: var(--color-text-muted);
+}
+
 /* Charts */
 .dashboard-charts {
   display: grid;

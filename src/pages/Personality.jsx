@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { setAssessmentCompleted } from '../utils/storage';
 import './AptitudeTest.css'; // Reusing quiz styles
 
 const MOCK_PERSONALITY = [
@@ -22,6 +23,7 @@ export default function Personality() {
     if (currentQuestion < MOCK_PERSONALITY.length - 1) {
       setTimeout(() => setCurrentQuestion(currentQuestion + 1), 300);
     } else {
+      setAssessmentCompleted('personality');
       addToast('Personality Assessment Completed!', 'success');
       navigate('/dashboard');
     }

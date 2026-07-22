@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Compass } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
+import { setAssessmentCompleted } from '../utils/storage';
 import './AptitudeTest.css'; // Reusing quiz styles
 
 const MOCK_INTERESTS = [
@@ -22,6 +23,7 @@ export default function Interests() {
     if (currentQuestion < MOCK_INTERESTS.length - 1) {
       setTimeout(() => setCurrentQuestion(currentQuestion + 1), 300);
     } else {
+      setAssessmentCompleted('interests');
       addToast('Interest Assessment Completed!', 'success');
       navigate('/dashboard');
     }
