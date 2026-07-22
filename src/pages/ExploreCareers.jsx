@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search, Filter, Bookmark, Briefcase, TrendingUp } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { getSavedCareers, saveCareer } from '../utils/storage';
@@ -14,10 +15,17 @@ const MOCK_CAREERS = [
 ];
 
 export default function ExploreCareers() {
-  const [search, setSearch] = useState('');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const urlSearch = searchParams.get('search') || '';
+
+  const [search, setSearch] = useState(urlSearch);
   const [filter, setFilter] = useState('All');
   const [saved, setSaved] = useState([]);
   const { addToast } = useToast();
+
+  useEffect(() => {
+    setSearch(urlSearch);
+  }, [urlSearch]);
 
   useEffect(() => {
     const loadSaved = () => {
@@ -29,6 +37,15 @@ export default function ExploreCareers() {
     window.addEventListener('pathfinder-storage-change', loadSaved);
     return () => window.removeEventListener('pathfinder-storage-change', loadSaved);
   }, []);
+
+  const handleSearchChange = (value) => {
+    setSearch(value);
+    if (value) {
+      setSearchParams({ search: value });
+    } else {
+      setSearchParams({});
+    }
+  };
 
   const toggleSave = (career) => {
     const isNowSaved = saveCareer(career);
@@ -59,7 +76,7 @@ export default function ExploreCareers() {
             type="text" 
             placeholder="Search careers..." 
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
           />
         </div>
         

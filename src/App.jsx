@@ -15,12 +15,45 @@ import Interests from './pages/Interests';
 import Personality from './pages/Personality';
 import Compare from './pages/Compare';
 import Scholarships from './pages/Scholarships';
+import NotFound from './pages/NotFound';
+
+function LoadingScreen() {
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      height: '100vh',
+      gap: '1.25rem',
+      backgroundColor: 'var(--color-bg-body)'
+    }}>
+      <div style={{
+        width: '42px',
+        height: '42px',
+        border: '3px solid var(--color-border)',
+        borderTopColor: 'var(--color-primary)',
+        borderRadius: '50%',
+        animation: 'spin 0.8s linear infinite'
+      }} />
+      <p style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', fontWeight: 500 }}>
+        Loading PathFinder AI...
+      </p>
+      <style>{`
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
+        }
+      `}</style>
+    </div>
+  );
+}
 
 function ProtectedRoute({ children }) {
   const { isAuthenticated, isLoading } = useAuth();
   
   if (isLoading) {
-    return null; // Or a loading spinner
+    return <LoadingScreen />;
   }
   
   if (!isAuthenticated) {
@@ -125,6 +158,15 @@ function App() {
                 </AppLayout>
               </ProtectedRoute>
             } />
+
+            {/* 404 Fallback Route */}
+            <Route path="*" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <NotFound />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
           </Routes>
         </BrowserRouter>
       </ToastProvider>
@@ -133,4 +175,3 @@ function App() {
 }
 
 export default App;
-

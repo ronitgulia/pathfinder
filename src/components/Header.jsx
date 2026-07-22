@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, Bell, Globe, ChevronDown } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { useAuth } from '../context/AuthContext';
@@ -8,11 +9,13 @@ export default function Header() {
   const [search, setSearch] = useState('');
   const { addToast } = useToast();
   const { user } = useAuth();
+  const navigate = useNavigate();
 
   const handleSearch = (e) => {
     e.preventDefault();
-    if (search.trim()) {
-      addToast(`Searching for "${search}"...`, 'info');
+    const query = search.trim();
+    if (query) {
+      navigate(`/explore?search=${encodeURIComponent(query)}`);
       setSearch('');
     }
   };
