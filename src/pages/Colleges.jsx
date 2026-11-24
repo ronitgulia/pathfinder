@@ -1,26 +1,21 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Search, MapPin, Star, GraduationCap } from 'lucide-react';
-import { useToast } from '../context/ToastContext';
+import { COLLEGES_DATA } from '../data/collegesData';
 import './ExploreCareers.css'; // Reusing layout styles
-
-const MOCK_COLLEGES = [
-  { id: 1, name: 'Stanford University', location: 'California, USA', match: 95, type: 'Private', programs: ['Computer Science', 'Business'] },
-  { id: 2, name: 'MIT', location: 'Massachusetts, USA', match: 98, type: 'Private', programs: ['Engineering', 'Data Science'] },
-  { id: 3, name: 'UC Berkeley', location: 'California, USA', match: 90, type: 'Public', programs: ['Architecture', 'Computer Science'] },
-  { id: 4, name: 'University of Oxford', location: 'Oxford, UK', match: 85, type: 'Public', programs: ['Law', 'Economics'] },
-];
 
 export default function Colleges() {
   const [search, setSearch] = useState('');
-  const { addToast } = useToast();
+  const navigate = useNavigate();
 
-  const handleApply = (name) => {
-    addToast(`Redirecting to admission portal for ${name}...`, 'info');
+  const handleViewRequirements = (id) => {
+    navigate(`/colleges/${id}/requirements`);
   };
 
-  const filteredColleges = MOCK_COLLEGES.filter(c => 
+  const filteredColleges = COLLEGES_DATA.filter(c => 
     c.name.toLowerCase().includes(search.toLowerCase()) || 
-    c.location.toLowerCase().includes(search.toLowerCase())
+    c.location.toLowerCase().includes(search.toLowerCase()) ||
+    c.programs.some(p => p.toLowerCase().includes(search.toLowerCase()))
   );
 
   return (
@@ -35,7 +30,7 @@ export default function Colleges() {
           <Search size={20} className="icon" />
           <input 
             type="text" 
-            placeholder="Search universities or locations..." 
+            placeholder="Search universities, locations, or programs..." 
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -64,7 +59,11 @@ export default function Colleges() {
               ))}
             </div>
 
-            <button className="btn btn-outline" style={{ width: '100%', justifyContent: 'center' }} onClick={() => handleApply(college.name)}>
+            <button 
+              className="btn btn-outline" 
+              style={{ width: '100%', justifyContent: 'center' }} 
+              onClick={() => handleViewRequirements(college.id)}
+            >
               <GraduationCap size={16} /> View Requirements
             </button>
           </div>

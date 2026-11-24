@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Bookmark, Briefcase, GraduationCap, TrendingUp, ChevronRight, CheckCircle2 } from 'lucide-react';
 import { useToast } from '../context/ToastContext';
 import { getSavedCareers, saveCareer } from '../utils/storage';
@@ -54,6 +55,7 @@ const RECOMMENDATIONS = [
 export default function Recommendations() {
   const [savedCareers, setSavedCareers] = useState([]);
   const { addToast } = useToast();
+  const navigate = useNavigate();
 
   useEffect(() => {
     const loadSaved = () => {
@@ -75,8 +77,8 @@ export default function Recommendations() {
     }
   };
 
-  const handleLearnMore = (title) => {
-    addToast(`Loading detailed roadmap for ${title}...`, 'info');
+  const handleLearnMore = (careerId) => {
+    navigate(`/roadmap/${careerId}`);
   };
 
   return (
@@ -138,7 +140,7 @@ export default function Recommendations() {
               ))}
             </div>
 
-            <button className="btn btn-outline full-width" onClick={() => handleLearnMore(career.title)}>
+            <button className="btn btn-outline full-width" onClick={() => handleLearnMore(career.id)}>
               View Roadmap <ChevronRight size={16} />
             </button>
           </div>

@@ -11,10 +11,13 @@ import AptitudeTest from './pages/AptitudeTest';
 import Recommendations from './pages/Recommendations';
 import ExploreCareers from './pages/ExploreCareers';
 import Colleges from './pages/Colleges';
+import CollegeRequirements from './pages/CollegeRequirements';
 import Interests from './pages/Interests';
 import Personality from './pages/Personality';
 import Compare from './pages/Compare';
 import Scholarships from './pages/Scholarships';
+import ScholarshipApply from './pages/ScholarshipApply';
+import CareerRoadmap from './pages/CareerRoadmap';
 import NotFound from './pages/NotFound';
 
 function LoadingScreen() {
@@ -127,6 +130,22 @@ function App() {
               </ProtectedRoute>
             } />
 
+            <Route path="/roadmap" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <CareerRoadmap />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/roadmap/:careerId" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <CareerRoadmap />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+
             <Route path="/explore" element={
               <ProtectedRoute>
                 <AppLayout>
@@ -139,6 +158,22 @@ function App() {
               <ProtectedRoute>
                 <AppLayout>
                   <Colleges />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/colleges/:collegeId/requirements" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <CollegeRequirements />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/colleges/requirements" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <CollegeRequirements />
                 </AppLayout>
               </ProtectedRoute>
             } />
@@ -155,6 +190,22 @@ function App() {
               <ProtectedRoute>
                 <AppLayout>
                   <Scholarships />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/scholarships/apply/:scholarshipId" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ScholarshipApply />
+                </AppLayout>
+              </ProtectedRoute>
+            } />
+
+            <Route path="/scholarships/apply" element={
+              <ProtectedRoute>
+                <AppLayout>
+                  <ScholarshipApply />
                 </AppLayout>
               </ProtectedRoute>
             } />
