@@ -5,6 +5,7 @@
   gap: 2rem;
   max-width: 900px;
   margin: 0 auto;
+  width: 100%;
 }
 
 .apply-header-nav {
@@ -12,6 +13,17 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.apply-switch-select {
+  padding: 0.5rem 1rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+  background-color: var(--color-bg-card);
+  color: var(--color-text-main);
+  font-size: 0.875rem;
+  max-width: 100%;
 }
 
 .apply-back-btn {
@@ -71,6 +83,24 @@
   gap: 1.75rem;
 }
 
+.reapply-notice-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  background-color: rgba(59, 130, 246, 0.08);
+  border: 1px solid rgba(59, 130, 246, 0.25);
+  font-size: 0.875rem;
+}
+
+.reapply-notice-banner p {
+  color: var(--color-text-muted);
+  margin-top: 0.2rem;
+}
+
 .form-section-title {
   display: flex;
   align-items: center;
@@ -128,11 +158,23 @@
   color: var(--color-text-muted);
 }
 
+.word-count-note.over-limit {
+  color: var(--color-error, #ef4444);
+  font-weight: 600;
+}
+
+.apply-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
 .apply-success-box {
   background-color: var(--color-bg-card);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border);
-  padding: 3rem 2rem;
+  padding: 2.5rem 2rem;
   box-shadow: var(--shadow-card);
   text-align: center;
   display: flex;
@@ -156,18 +198,97 @@
   background-color: var(--color-bg-body);
   border-radius: var(--radius-md);
   border: 1px solid var(--color-border);
-  padding: 1.25rem 2rem;
+  padding: 1.25rem 1.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.55rem;
+  width: 100%;
+  max-width: 520px;
+  text-align: left;
+  font-size: 0.875rem;
+}
+
+.apply-receipt-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.btn-secondary-action {
+  background-color: var(--color-secondary);
+  color: var(--color-text-inverse);
+}
+
+.btn-secondary-action:hover {
+  background-color: #059669;
+}
+
+.apply-history-section {
+  width: 100%;
+  max-width: 520px;
+  margin-top: 0.75rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid var(--color-border);
+  text-align: left;
+}
+
+.apply-history-section h4 {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--color-text-main);
+  margin-bottom: 0.75rem;
+}
+
+.apply-history-list {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  width: 100%;
-  max-width: 440px;
-  text-align: left;
-  font-size: 0.875rem;
+}
+
+.apply-history-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.65rem 0.85rem;
+  background-color: var(--color-bg-body);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-md);
+  font-size: 0.8rem;
+}
+
+.apply-history-meta {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.apply-history-meta span {
+  color: var(--color-text-muted);
+}
+
+.apply-history-pdf-btn {
+  padding: 0.35rem 0.75rem;
+  font-size: 0.775rem;
 }
 
 @media (max-width: 640px) {
   .form-grid-2 {
     grid-template-columns: 1fr;
+  }
+
+  .apply-form-card,
+  .apply-banner-card,
+  .apply-success-box {
+    padding: 1.25rem;
+  }
+
+  .apply-receipt-actions .btn,
+  .apply-form-actions .btn {
+    width: 100%;
   }
 }

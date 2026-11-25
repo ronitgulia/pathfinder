@@ -1,19 +1,35 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Search, ExternalLink, CheckCircle2 } from 'lucide-react';
+import { Search, ExternalLink, CheckCircle2, Download, RefreshCw } from 'lucide-react';
 import { SCHOLARSHIPS_DATA } from '../data/scholarshipsData';
 import { getScholarshipApplications } from '../utils/storage';
+import { downloadScholarshipApplicationPDF } from '../utils/pdfReport';
+import { useAuth } from '../context/useAuth';
+import { useToast } from '../context/useToast';
 import './ExploreCareers.css'; // Reusing layout styles
 
 export default function Scholarships() {
   const [search, setSearch] = useState('');
-  const [appliedIds, setAppliedIds] = useState([]);
+  const [applicationsByScholarship, setApplicationsByScholarship] = useState({});
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { addToast } = useToast();
 
   useEffect(() => {
     const loadApps = () => {
       const apps = getScholarshipApplications();
-      setAppliedIds(apps.map(a => a.scholarshipId));
+      const grouped = {};
+      apps.forEach((app) => {
+        const sid = Number(app.scholarshipId);
+        if (!grouped[sid]) {
+          grouped[sid] = [];
+        }
+        grouped[sid].push(app);
+      });
+      Object.keys(grouped).forEach((sid) => {
+        grouped[sid].sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+      });
+      setApplicationsByScholarship(grouped);
     };
     loadApps();
 
@@ -23,6 +39,17 @@ export default function Scholarships() {
 
   const handleApply = (id) => {
     navigate(`/scholarships/apply/${id}`);
+  };
+
+  const handleQuickDownload = (scholarship, latestApp) => {
+    if (!latestApp) return;
+    try {
+      downloadScholarshipApplicationPDF(latestApp, scholarship, user);
+      addToast(`Downloaded PDF report for ${scholarship.name}.`, 'success');
+    } catch (err) {
+      console.error('PDF download error', err);
+      addToast('Failed to download PDF report.', 'error');
+    }
   };
 
   const filtered = SCHOLARSHIPS_DATA.filter(s => 
@@ -52,9 +79,11 @@ export default function Scholarships() {
 
       <div className="directory-grid">
         {filtered.map(item => {
-          const hasApplied = appliedIds.includes(item.id);
+          const itemApps = applicationsByScholarship[item.id] || [];
+          const hasApplied = itemApps.length > 0;
+          const latestApp = hasApplied ? itemApps[0] : null;
           return (
-            <div key={item.id} className="directory-card">
+            <div key={item.id} className="directory-card" style={{ display: 'flex', flexDirection: 'column' }}>
               <div className="directory-header">
                 <span className="category-pill">{item.amount}</span>
                 {hasApplied && (
@@ -66,7 +95,7 @@ export default function Scholarships() {
                     fontWeight: 600, 
                     color: 'var(--color-secondary)' 
                   }}>
-                    <CheckCircle2 size={14} /> Applied
+                    <CheckCircle2 size={14} /> Applied{itemApps.length > 1 ? ` (${itemApps.length})` : ''}
                   </span>
                 )}
               </div>
@@ -74,17 +103,30 @@ export default function Scholarships() {
               <p style={{ color: 'var(--color-text-muted)', fontSize: '0.875rem', marginBottom: '0.5rem' }}>
                 <strong>Deadline:</strong> {item.deadline}
               </p>
-              <p style={{ color: 'var(--color-text)', fontSize: '0.875rem', marginBottom: '1.5rem', lineHeight: '1.5' }}>
+              <p style={{ color: 'var(--color-text)', fontSize: '0.875rem', marginBottom: '1.5rem', lineHeight: '1.5', flex: 1 }}>
                 <strong>Eligibility:</strong> {item.eligibility}
               </p>
 
-              <button 
-                className={`btn ${hasApplied ? 'btn-primary' : 'btn-outline'}`}
-                style={{ width: '100%', justifyContent: 'center' }} 
-                onClick={() => handleApply(item.id)}
-              >
-                <ExternalLink size={16} /> {hasApplied ? 'View Submitted Application' : 'Apply Now'}
-              </button>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+                <button 
+                  className={`btn ${hasApplied ? 'btn-primary' : 'btn-outline'}`}
+                  style={{ width: '100%', justifyContent: 'center' }} 
+                  onClick={() => handleApply(item.id)}
+                >
+                  {hasApplied ? <RefreshCw size={16} /> : <ExternalLink size={16} />}
+                  {hasApplied ? 'View / Apply Again' : 'Apply Now'}
+                </button>
+                {hasApplied && latestApp && (
+                  <button
+                    type="button"
+                    className="btn btn-outline"
+                    style={{ width: '100%', justifyContent: 'center' }}
+                    onClick={() => handleQuickDownload(item, latestApp)}
+                  >
+                    <Download size={16} /> Download PDF Report
+                  </button>
+                )}
+              </div>
             </div>
           );
         })}

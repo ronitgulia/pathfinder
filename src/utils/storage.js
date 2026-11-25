@@ -3,6 +3,7 @@ const ASSESSMENTS_KEY = 'pathfinder_assessments';
 const SCHOLARSHIP_APPLICATIONS_KEY = 'pathfinder_scholarship_applications';
 const ROADMAP_PROGRESS_KEY = 'pathfinder_roadmap_milestones';
 const SAVED_COLLEGES_KEY = 'pathfinder_saved_colleges';
+const COLLEGE_CHECKLIST_KEY = 'pathfinder_college_checklists';
 
 export const getSavedCareers = () => {
   try {
@@ -26,7 +27,7 @@ export const saveCareer = (career) => {
     }
     localStorage.setItem(SAVED_CAREERS_KEY, JSON.stringify(updated));
     window.dispatchEvent(new Event('pathfinder-storage-change'));
-    return !exists; // returns true if now saved, false if unsaved
+    return !exists;
   } catch (err) {
     console.error('Failed to save career', err);
     return false;
@@ -74,7 +75,7 @@ export const setAssessmentCompleted = (key) => {
   }
 };
 
-// Scholarship Application Persistence
+// Scholarship Application Persistence (supports multiple applications / Apply Again)
 export const getScholarshipApplications = () => {
   try {
     const raw = localStorage.getItem(SCHOLARSHIP_APPLICATIONS_KEY);
@@ -88,32 +89,35 @@ export const getScholarshipApplications = () => {
 export const submitScholarshipApplication = (application) => {
   try {
     const applications = getScholarshipApplications();
-    const existingIndex = applications.findIndex(a => a.scholarshipId === application.scholarshipId);
-    let updated;
-    if (existingIndex >= 0) {
-      updated = [...applications];
-      updated[existingIndex] = { ...updated[existingIndex], ...application, updatedAt: new Date().toISOString() };
-    } else {
-      const newApp = {
-        ...application,
-        applicationId: `APP-${Date.now().toString(36).toUpperCase()}`,
-        status: 'Submitted - Under Review',
-        submittedAt: new Date().toISOString()
-      };
-      updated = [...applications, newApp];
-    }
+    const uniqueSuffix = Math.random().toString(36).slice(2, 6).toUpperCase();
+    const newApp = {
+      ...application,
+      scholarshipId: Number(application.scholarshipId),
+      applicationId: `APP-${Date.now().toString(36).toUpperCase()}-${uniqueSuffix}`,
+      status: 'Submitted - Under Review',
+      submittedAt: new Date().toISOString()
+    };
+    const updated = [...applications, newApp];
     localStorage.setItem(SCHOLARSHIP_APPLICATIONS_KEY, JSON.stringify(updated));
     window.dispatchEvent(new Event('pathfinder-storage-change'));
-    return true;
+    return newApp;
   } catch (err) {
     console.error('Failed to submit scholarship application', err);
-    return false;
+    return null;
   }
 };
 
-export const getScholarshipApplication = (scholarshipId) => {
+export const getScholarshipApplicationsByScholarship = (scholarshipId) => {
+  const numericId = Number(scholarshipId);
   const applications = getScholarshipApplications();
-  return applications.find(a => a.scholarshipId === Number(scholarshipId));
+  return applications
+    .filter(a => Number(a.scholarshipId) === numericId)
+    .sort((a, b) => new Date(b.submittedAt).getTime() - new Date(a.submittedAt).getTime());
+};
+
+export const getScholarshipApplication = (scholarshipId) => {
+  const list = getScholarshipApplicationsByScholarship(scholarshipId);
+  return list.length > 0 ? list[0] : null;
 };
 
 export const hasAppliedScholarship = (scholarshipId) => {
@@ -187,4 +191,33 @@ export const toggleSaveCollege = (college) => {
 export const isCollegeSaved = (collegeId) => {
   const list = getSavedColleges();
   return list.some(c => c.id === Number(collegeId));
+};
+
+// College Checklist Progress Persistence
+export const getCollegeChecklistProgress = (collegeId) => {
+  try {
+    const raw = localStorage.getItem(COLLEGE_CHECKLIST_KEY);
+    const store = raw ? JSON.parse(raw) : {};
+    return store[collegeId] || [];
+  } catch (err) {
+    console.error('Failed to read college checklist progress', err);
+    return [];
+  }
+};
+
+export const toggleCollegeChecklistItem = (collegeId, itemId) => {
+  try {
+    const raw = localStorage.getItem(COLLEGE_CHECKLIST_KEY);
+    const store = raw ? JSON.parse(raw) : {};
+    const items = store[collegeId] || [];
+    const exists = items.includes(itemId);
+    const updated = exists ? items.filter(id => id !== itemId) : [...items, itemId];
+    store[collegeId] = updated;
+    localStorage.setItem(COLLEGE_CHECKLIST_KEY, JSON.stringify(store));
+    window.dispatchEvent(new Event('pathfinder-storage-change'));
+    return !exists;
+  } catch (err) {
+    console.error('Failed to toggle college checklist item', err);
+    return false;
+  }
 };

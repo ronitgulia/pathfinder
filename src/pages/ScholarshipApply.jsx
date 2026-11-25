@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { 
   ArrowLeft, 
@@ -6,16 +6,32 @@ import {
   CheckCircle2, 
   FileText, 
   User, 
-  Send 
+  Send,
+  Download,
+  RefreshCw,
+  Clock
 } from 'lucide-react';
 import { getScholarshipById, SCHOLARSHIPS_DATA } from '../data/scholarshipsData';
 import { 
-  getScholarshipApplication, 
+  getScholarshipApplicationsByScholarship,
   submitScholarshipApplication 
 } from '../utils/storage';
-import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
+import { downloadScholarshipApplicationPDF } from '../utils/pdfReport';
+import { useAuth } from '../context/useAuth';
+import { useToast } from '../context/useToast';
 import './ScholarshipApply.css';
+
+const buildFreshFormData = (user) => ({
+  fullName: user?.name || '',
+  email: user?.email || '',
+  grade: user?.grade || 'Grade 10',
+  currentSchool: '',
+  gpa: '',
+  intendedMajor: '',
+  achievements: '',
+  essayText: '',
+  confirmedAccurate: false
+});
 
 export default function ScholarshipApply() {
   const { scholarshipId } = useParams();
@@ -26,24 +42,26 @@ export default function ScholarshipApply() {
   const currentId = scholarshipId ? Number(scholarshipId) : 1;
   const scholarship = getScholarshipById(currentId);
 
-  const [existingApp, setExistingApp] = useState(null);
-  const [formData, setFormData] = useState({
-    fullName: user?.name || '',
-    email: user?.email || '',
-    grade: user?.grade || 'Grade 10',
-    currentSchool: 'Oakridge High School',
-    gpa: '3.92',
-    intendedMajor: 'Computer Science & AI',
-    achievements: 'President of Coding Club; Science Fair Regional 1st Place',
-    essayText: '',
-    confirmedAccurate: false
-  });
+  const [appHistory, setAppHistory] = useState([]);
+  const [isReapplying, setIsReapplying] = useState(false);
+  const [formData, setFormData] = useState(() => buildFreshFormData(user));
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  useEffect(() => {
-    const existing = getScholarshipApplication(scholarship.id);
-    setExistingApp(existing);
+  const refreshApplications = useCallback(() => {
+    const history = getScholarshipApplicationsByScholarship(scholarship.id);
+    setAppHistory(history);
   }, [scholarship.id]);
+
+  useEffect(() => {
+    refreshApplications();
+    setIsReapplying(false);
+    setFormData(buildFreshFormData(user));
+
+    window.addEventListener('pathfinder-storage-change', refreshApplications);
+    return () => window.removeEventListener('pathfinder-storage-change', refreshApplications);
+  }, [refreshApplications, user]);
+
+  const latestApp = appHistory.length > 0 ? appHistory[0] : null;
 
   const handleChange = (e) => {
     const { name, value, type, checked } = e.target;
@@ -55,11 +73,40 @@ export default function ScholarshipApply() {
 
   const wordCount = formData.essayText.trim() ? formData.essayText.trim().split(/\s+/).length : 0;
 
+  const handleApplyAgain = () => {
+    setFormData(buildFreshFormData(user));
+    setIsReapplying(true);
+    addToast('Application form reset. You can now submit a new application.', 'info');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleDownloadPdf = (applicationToDownload) => {
+    const targetApp = applicationToDownload || latestApp;
+    if (!targetApp) {
+      addToast('No submitted application data found to export.', 'error');
+      return;
+    }
+    try {
+      downloadScholarshipApplicationPDF(targetApp, scholarship, user);
+      addToast('Application PDF report downloaded successfully!', 'success');
+    } catch (err) {
+      console.error('Failed to generate application PDF', err);
+      addToast('Unable to generate PDF report. Please try again.', 'error');
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
 
-    if (!formData.fullName || !formData.email || !formData.essayText) {
-      addToast('Please complete all required fields and the personal statement.', 'error');
+    if (
+      !formData.fullName.trim() ||
+      !formData.email.trim() ||
+      !formData.currentSchool.trim() ||
+      !formData.gpa.trim() ||
+      !formData.intendedMajor.trim() ||
+      !formData.essayText.trim()
+    ) {
+      addToast('Please complete all required fields and your personal statement.', 'error');
       return;
     }
 
@@ -76,28 +123,32 @@ export default function ScholarshipApply() {
         scholarshipName: scholarship.name,
         amount: scholarship.amount,
         applicant: {
-          fullName: formData.fullName,
-          email: formData.email,
+          fullName: formData.fullName.trim(),
+          email: formData.email.trim(),
           grade: formData.grade,
-          school: formData.currentSchool,
-          gpa: formData.gpa,
-          intendedMajor: formData.intendedMajor
+          school: formData.currentSchool.trim(),
+          gpa: formData.gpa.trim(),
+          intendedMajor: formData.intendedMajor.trim()
         },
-        essay: formData.essayText,
-        achievements: formData.achievements
+        essay: formData.essayText.trim(),
+        achievements: formData.achievements.trim()
       };
 
-      const success = submitScholarshipApplication(applicationPayload);
+      const createdApp = submitScholarshipApplication(applicationPayload);
       setIsSubmitting(false);
 
-      if (success) {
+      if (createdApp) {
         addToast(`Application for ${scholarship.name} submitted successfully!`, 'success');
-        setExistingApp(getScholarshipApplication(scholarship.id));
+        setIsReapplying(false);
+        setFormData(buildFreshFormData(user));
+        refreshApplications();
       } else {
         addToast('Failed to save application. Please try again.', 'error');
       }
-    }, 600);
+    }, 500);
   };
+
+  const showSuccessReceipt = Boolean(latestApp) && !isReapplying;
 
   return (
     <div className="apply-container">
@@ -107,14 +158,8 @@ export default function ScholarshipApply() {
         </button>
 
         <select
-          style={{
-            padding: '0.5rem 1rem',
-            borderRadius: 'var(--radius-md)',
-            border: '1px solid var(--color-border)',
-            backgroundColor: 'var(--color-bg-card)',
-            color: 'var(--color-text-main)',
-            fontSize: '0.875rem'
-          }}
+          className="apply-switch-select"
+          aria-label="Switch scholarship"
           value={scholarship.id}
           onChange={(e) => navigate(`/scholarships/apply/${e.target.value}`)}
         >
@@ -144,50 +189,125 @@ export default function ScholarshipApply() {
         </div>
       </div>
 
-      {/* If already submitted */}
-      {existingApp ? (
+      {showSuccessReceipt ? (
         <div className="apply-success-box">
           <div className="success-icon-wrap">
             <CheckCircle2 size={36} />
           </div>
           <h2>Application Active & Submitted</h2>
-          <p style={{ color: 'var(--color-text-muted)', maxWidth: '480px' }}>
-            Your application for <strong>{scholarship.name}</strong> has been transmitted to the evaluation committee.
+          <p style={{ color: 'var(--color-text-muted)', maxWidth: '500px' }}>
+            Your application for <strong>{scholarship.name}</strong> has been saved and transmitted to the evaluation committee.
           </p>
 
           <div className="receipt-meta">
             <div>
               <span style={{ color: 'var(--color-text-muted)' }}>Confirmation ID: </span>
-              <strong>{existingApp.applicationId}</strong>
+              <strong>{latestApp.applicationId}</strong>
             </div>
             <div>
               <span style={{ color: 'var(--color-text-muted)' }}>Status: </span>
               <span style={{ color: 'var(--color-secondary)', fontWeight: 600 }}>
-                {existingApp.status}
+                {latestApp.status}
               </span>
             </div>
             <div>
               <span style={{ color: 'var(--color-text-muted)' }}>Submission Timestamp: </span>
-              <span>{new Date(existingApp.submittedAt).toLocaleDateString()}</span>
+              <span>{new Date(latestApp.submittedAt).toLocaleString()}</span>
             </div>
             <div>
               <span style={{ color: 'var(--color-text-muted)' }}>Applicant Name: </span>
-              <strong>{existingApp.applicant.fullName}</strong>
+              <strong>{latestApp.applicant?.fullName}</strong>
+            </div>
+            <div>
+              <span style={{ color: 'var(--color-text-muted)' }}>School & GPA: </span>
+              <span>{latestApp.applicant?.school} • GPA {latestApp.applicant?.gpa}</span>
+            </div>
+            <div>
+              <span style={{ color: 'var(--color-text-muted)' }}>Intended Major: </span>
+              <span>{latestApp.applicant?.intendedMajor}</span>
             </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '1rem', marginTop: '1rem' }}>
-            <button className="btn btn-primary" onClick={() => navigate('/scholarships')}>
+          <div className="apply-receipt-actions">
+            <button
+              type="button"
+              className="btn btn-primary"
+              onClick={() => handleDownloadPdf(latestApp)}
+            >
+              <Download size={16} /> Download PDF Report
+            </button>
+            <button
+              type="button"
+              className="btn btn-secondary-action"
+              onClick={handleApplyAgain}
+            >
+              <RefreshCw size={16} /> Apply Again
+            </button>
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() => navigate('/scholarships')}
+            >
               Explore Other Scholarships
             </button>
-            <button className="btn btn-outline" onClick={() => navigate('/dashboard')}>
+            <button
+              type="button"
+              className="btn btn-outline"
+              onClick={() => navigate('/dashboard')}
+            >
               Return to Dashboard
             </button>
           </div>
+
+          {appHistory.length > 1 && (
+            <div className="apply-history-section">
+              <h4>
+                <Clock size={15} /> Submission History ({appHistory.length} Applications)
+              </h4>
+              <div className="apply-history-list">
+                {appHistory.map((item, idx) => (
+                  <div key={item.applicationId} className="apply-history-row">
+                    <div className="apply-history-meta">
+                      <strong>{item.applicationId}</strong>
+                      <span>
+                        {idx === 0 ? 'Latest • ' : ''}
+                        {new Date(item.submittedAt).toLocaleString()} • {item.status}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      className="btn btn-outline apply-history-pdf-btn"
+                      onClick={() => handleDownloadPdf(item)}
+                    >
+                      <Download size={14} /> PDF
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
         </div>
       ) : (
         /* Application Form */
         <form onSubmit={handleSubmit} className="apply-form-card">
+          {isReapplying && latestApp && (
+            <div className="reapply-notice-banner">
+              <div>
+                <strong>New Application Mode</strong>
+                <p>
+                  Previous submission ({latestApp.applicationId}) is preserved. Complete this form to submit a new application.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-outline"
+                onClick={() => setIsReapplying(false)}
+              >
+                View Latest Receipt
+              </button>
+            </div>
+          )}
+
           <div>
             <h3 className="form-section-title">
               <User size={18} /> 1. Applicant Academic Profile
@@ -199,6 +319,7 @@ export default function ScholarshipApply() {
                   type="text" 
                   name="fullName" 
                   required
+                  placeholder="Enter your full legal name"
                   value={formData.fullName} 
                   onChange={handleChange} 
                 />
@@ -209,6 +330,7 @@ export default function ScholarshipApply() {
                   type="email" 
                   name="email" 
                   required
+                  placeholder="student@example.com"
                   value={formData.email} 
                   onChange={handleChange} 
                 />
@@ -216,6 +338,7 @@ export default function ScholarshipApply() {
               <div className="apply-input-group">
                 <label>Current Grade Level *</label>
                 <select name="grade" value={formData.grade} onChange={handleChange}>
+                  <option value="Grade 8">Grade 8</option>
                   <option value="Grade 9">Grade 9</option>
                   <option value="Grade 10">Grade 10</option>
                   <option value="Grade 11">Grade 11</option>
@@ -229,7 +352,7 @@ export default function ScholarshipApply() {
                   type="text" 
                   name="gpa" 
                   required
-                  placeholder="e.g. 3.9" 
+                  placeholder="e.g. 3.92" 
                   value={formData.gpa} 
                   onChange={handleChange} 
                 />
@@ -240,6 +363,7 @@ export default function ScholarshipApply() {
                   type="text" 
                   name="currentSchool" 
                   required
+                  placeholder="e.g. Oakridge High School"
                   value={formData.currentSchool} 
                   onChange={handleChange} 
                 />
@@ -250,6 +374,7 @@ export default function ScholarshipApply() {
                   type="text" 
                   name="intendedMajor" 
                   required
+                  placeholder="e.g. Computer Science & AI"
                   value={formData.intendedMajor} 
                   onChange={handleChange} 
                 />
@@ -290,7 +415,7 @@ export default function ScholarshipApply() {
                   value={formData.essayText} 
                   onChange={handleChange} 
                 />
-                <div className="word-count-note">
+                <div className={`word-count-note ${wordCount > scholarship.essayWordLimit ? 'over-limit' : ''}`}>
                   Word Count: {wordCount} / {scholarship.essayWordLimit} max words
                 </div>
               </div>
@@ -310,11 +435,11 @@ export default function ScholarshipApply() {
             </label>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '1rem' }}>
+          <div className="apply-form-actions">
             <button 
               type="button" 
               className="btn btn-outline" 
-              onClick={() => navigate('/scholarships')}
+              onClick={() => (isReapplying && latestApp ? setIsReapplying(false) : navigate('/scholarships'))}
             >
               Cancel
             </button>
