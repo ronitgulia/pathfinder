@@ -5,9 +5,16 @@ import {
   Radar, RadarChart, PolarGrid, PolarAngleAxis, ResponsiveContainer,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, Cell
 } from 'recharts';
-import { useToast } from '../context/ToastContext';
-import { useAuth } from '../context/AuthContext';
-import { getSavedCareers, removeCareer, getAssessmentsState } from '../utils/storage';
+import { useToast } from '../context/useToast';
+import { useAuth } from '../context/useAuth';
+import {
+  getSavedCareers,
+  removeCareer,
+  getAssessmentsState,
+  getSavedColleges,
+  getScholarshipApplications
+} from '../utils/storage';
+import { downloadCareerDashboardPDF } from '../utils/pdfReport';
 import './Dashboard.css';
 
 const aptitudeData = [
@@ -46,12 +53,33 @@ export default function Dashboard() {
   }, []);
 
   const handleDownload = () => {
-    addToast('Generating PDF Report... Download will start shortly.', 'info');
-    setTimeout(() => addToast('PDF Report downloaded successfully!', 'success'), 2000);
+    try {
+      downloadCareerDashboardPDF({
+        user,
+        assessments,
+        aptitudeData,
+        interestData,
+        savedCareers,
+        savedColleges: getSavedColleges(),
+        scholarshipApplications: getScholarshipApplications()
+      });
+      addToast('PDF Report downloaded successfully!', 'success');
+    } catch (err) {
+      console.error('Failed to generate dashboard PDF report', err);
+      addToast('Failed to generate PDF report. Please try again.', 'error');
+    }
   };
 
-  const handleShare = () => {
-    addToast('Report link copied to clipboard. You can now share it with your parents.', 'success');
+  const handleShare = async () => {
+    const shareUrl = window.location.href;
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(shareUrl);
+      }
+      addToast('Report link copied to clipboard. You can now share it with your parents.', 'success');
+    } catch {
+      addToast('Share link ready: copy the page URL from your browser address bar.', 'info');
+    }
   };
 
   const handleRemoveCareer = (e, id, title) => {
@@ -74,7 +102,7 @@ export default function Dashboard() {
               : `${completedCount} of 3 assessments finished. Complete remaining to boost accuracy.`}
           </p>
         </div>
-        <div className="header-actions">
+        <div className="header-actions dashboard-header-actions">
           <button className="btn btn-outline" onClick={handleDownload}>
             <Download size={16} />
             Download PDF Report
@@ -161,7 +189,7 @@ export default function Dashboard() {
                 <div 
                   key={career.id} 
                   className="saved-career-item"
-                  onClick={() => navigate('/recommendations')}
+                  onClick={() => navigate(`/roadmap/${career.id}`)}
                 >
                   <div className="saved-career-meta">
                     <span className="saved-career-title">{career.title}</span>
