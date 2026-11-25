@@ -5,7 +5,8 @@ import Sidebar from './components/Sidebar';
 import Header from './components/Header';
 import Dashboard from './pages/Dashboard';
 import { ToastProvider } from './context/ToastContext';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider } from './context/AuthContext';
+import { useAuth } from './context/useAuth';
 import Auth from './pages/Auth';
 import AptitudeTest from './pages/AptitudeTest';
 import Recommendations from './pages/Recommendations';
@@ -14,7 +15,6 @@ import Colleges from './pages/Colleges';
 import CollegeRequirements from './pages/CollegeRequirements';
 import Interests from './pages/Interests';
 import Personality from './pages/Personality';
-import Compare from './pages/Compare';
 import Scholarships from './pages/Scholarships';
 import ScholarshipApply from './pages/ScholarshipApply';
 import CareerRoadmap from './pages/CareerRoadmap';
@@ -174,14 +174,6 @@ function App() {
               <ProtectedRoute>
                 <AppLayout>
                   <CollegeRequirements />
-                </AppLayout>
-              </ProtectedRoute>
-            } />
-            
-            <Route path="/compare" element={
-              <ProtectedRoute>
-                <AppLayout>
-                  <Compare />
                 </AppLayout>
               </ProtectedRoute>
             } />

@@ -7,14 +7,13 @@ import {
   User, 
   Star, 
   Briefcase, 
-  Scale, 
   GraduationCap, 
   Award, 
   LogOut,
   Sparkles
 } from 'lucide-react';
-import { useToast } from '../context/ToastContext';
-import { useAuth } from '../context/AuthContext';
+import { useToast } from '../context/useToast';
+import { useAuth } from '../context/useAuth';
 import './Sidebar.css';
 
 const navItems = [
@@ -24,7 +23,6 @@ const navItems = [
   { path: '/personality', label: 'Personality', icon: User },
   { path: '/recommendations', label: 'Recommendations', icon: Star },
   { path: '/explore', label: 'Explore Careers', icon: Briefcase },
-  { path: '/compare', label: 'Compare', icon: Scale },
   { path: '/colleges', label: 'Colleges', icon: GraduationCap },
   { path: '/scholarships', label: 'Scholarships', icon: Award },
 ];
@@ -56,6 +54,8 @@ export default function Sidebar() {
             <NavLink
               key={item.path}
               to={item.path}
+              title={item.label}
+              aria-label={item.label}
               className={({ isActive }) => `nav-link ${isActive ? 'active' : ''}`}
             >
               <Icon size={20} />
