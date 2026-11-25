@@ -16,8 +16,13 @@ import {
   BookOpen
 } from 'lucide-react';
 import { COLLEGES_DATA, getCollegeById } from '../data/collegesData';
-import { getSavedColleges, toggleSaveCollege } from '../utils/storage';
-import { useToast } from '../context/ToastContext';
+import {
+  getSavedColleges,
+  toggleSaveCollege,
+  getCollegeChecklistProgress,
+  toggleCollegeChecklistItem
+} from '../utils/storage';
+import { useToast } from '../context/useToast';
 import './CollegeRequirements.css';
 
 export default function CollegeRequirements() {
@@ -32,22 +37,18 @@ export default function CollegeRequirements() {
   const [isSaved, setIsSaved] = useState(false);
 
   useEffect(() => {
-    // Check saved status
-    const saved = getSavedColleges();
-    setIsSaved(saved.some(c => c.id === college.id));
-
-    const handleStorageChange = () => {
+    const syncState = () => {
       setIsSaved(getSavedColleges().some(c => c.id === college.id));
+      setCheckedItems(getCollegeChecklistProgress(college.id));
     };
-    window.addEventListener('pathfinder-storage-change', handleStorageChange);
-    return () => window.removeEventListener('pathfinder-storage-change', handleStorageChange);
+    syncState();
+    window.addEventListener('pathfinder-storage-change', syncState);
+    return () => window.removeEventListener('pathfinder-storage-change', syncState);
   }, [college.id]);
 
   const handleToggleCheck = (itemId) => {
-    if (checkedItems.includes(itemId)) {
-      setCheckedItems(checkedItems.filter(id => id !== itemId));
-    } else {
-      setCheckedItems([...checkedItems, itemId]);
+    const nowChecked = toggleCollegeChecklistItem(college.id, itemId);
+    if (nowChecked) {
       addToast('Item checked! Track your application readiness.', 'info');
     }
   };
@@ -79,16 +80,10 @@ export default function CollegeRequirements() {
           <ArrowLeft size={18} /> Back to Colleges
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+        <div className="req-header-controls">
           <select
-            style={{
-              padding: '0.5rem 1rem',
-              borderRadius: 'var(--radius-md)',
-              border: '1px solid var(--color-border)',
-              backgroundColor: 'var(--color-bg-card)',
-              color: 'var(--color-text-main)',
-              fontSize: '0.875rem'
-            }}
+            className="req-switch-select"
+            aria-label="Switch college"
             value={college.id}
             onChange={(e) => navigate(`/colleges/${e.target.value}/requirements`)}
           >
@@ -113,7 +108,7 @@ export default function CollegeRequirements() {
       <div className="req-hero-card">
         <div className="req-hero-top">
           <div>
-            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem', flexWrap: 'wrap' }}>
               <span className="req-meta-pill">{college.type}</span>
               <span className="req-meta-pill" style={{ color: 'var(--color-secondary)' }}>
                 <Star size={14} fill="currentColor" /> {college.match}% Aptitude Match
@@ -297,3 +292,4 @@ export default function CollegeRequirements() {
     </div>
   );
 }
+

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { User } from 'lucide-react';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../context/useToast';
 import { setAssessmentCompleted } from '../utils/storage';
 import './AptitudeTest.css'; // Reusing quiz styles
 
@@ -52,7 +52,7 @@ export default function Personality() {
 
       <div className="question-card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
         <h2 className="question-text">{question.text}</h2>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem', flexWrap: 'wrap' }}>
           <button className="btn btn-outline" style={{ borderColor: 'var(--color-error)', color: 'var(--color-error)' }} onClick={() => handleSelect('Disagree')}>Disagree</button>
           <button className="btn btn-outline" onClick={() => handleSelect('Neutral')}>Neutral</button>
           <button className="btn btn-outline" style={{ borderColor: 'var(--color-success)', color: 'var(--color-success)' }} onClick={() => handleSelect('Agree')}>Agree</button>

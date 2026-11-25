@@ -1,22 +1,25 @@
 import React, { useState, useEffect } from 'react';
-import { useSearchParams } from 'react-router-dom';
-import { Search, Filter, Bookmark, Briefcase, TrendingUp } from 'lucide-react';
-import { useToast } from '../context/ToastContext';
+import { useSearchParams, useNavigate } from 'react-router-dom';
+import { Search, Filter, Bookmark, Briefcase, TrendingUp, ChevronRight } from 'lucide-react';
+import { useToast } from '../context/useToast';
 import { getSavedCareers, saveCareer } from '../utils/storage';
 import './ExploreCareers.css';
 
 const MOCK_CAREERS = [
-  { id: 1, title: 'UX Designer', category: 'Design', match: 88, salary: 'Medium', growth: '+15%' },
-  { id: 2, title: 'Data Scientist', category: 'Tech', match: 98, salary: 'High', growth: '+31%' },
-  { id: 3, title: 'Financial Analyst', category: 'Finance', match: 92, salary: 'High', growth: '+9%' },
-  { id: 4, title: 'Software Engineer', category: 'Tech', match: 85, salary: 'High', growth: '+22%' },
-  { id: 5, title: 'Marketing Manager', category: 'Business', match: 78, salary: 'Medium', growth: '+10%' },
-  { id: 6, title: 'Psychologist', category: 'Healthcare', match: 82, salary: 'Medium', growth: '+14%' },
+  { id: 1, title: 'Data Scientist', category: 'Tech', match: 98, salary: 'High', growth: '+31%' },
+  { id: 2, title: 'Financial Analyst', category: 'Finance', match: 92, salary: 'High', growth: '+9%' },
+  { id: 3, title: 'Software Architect', category: 'Tech', match: 87, salary: 'Very High', growth: '+25%' },
+  { id: 4, title: 'Market Research Analyst', category: 'Business', match: 85, salary: 'Medium', growth: '+19%' },
+  { id: 5, title: 'UX Designer', category: 'Design', match: 88, salary: 'Medium', growth: '+15%' },
+  { id: 6, title: 'Software Engineer', category: 'Tech', match: 85, salary: 'High', growth: '+22%' },
+  { id: 7, title: 'Marketing Manager', category: 'Business', match: 78, salary: 'Medium', growth: '+10%' },
+  { id: 8, title: 'Psychologist', category: 'Healthcare', match: 82, salary: 'Medium', growth: '+14%' },
 ];
 
 export default function ExploreCareers() {
   const [searchParams, setSearchParams] = useSearchParams();
   const urlSearch = searchParams.get('search') || '';
+  const navigate = useNavigate();
 
   const [search, setSearch] = useState(urlSearch);
   const [filter, setFilter] = useState('All');
@@ -57,7 +60,9 @@ export default function ExploreCareers() {
   };
 
   const filteredCareers = MOCK_CAREERS.filter(c => {
-    const matchesSearch = c.title.toLowerCase().includes(search.toLowerCase());
+    const matchesSearch =
+      c.title.toLowerCase().includes(search.toLowerCase()) ||
+      c.category.toLowerCase().includes(search.toLowerCase());
     const matchesFilter = filter === 'All' || c.category === filter;
     return matchesSearch && matchesFilter;
   });
@@ -66,7 +71,7 @@ export default function ExploreCareers() {
     <div className="explore-container">
       <div className="explore-header">
         <h1>Explore Careers</h1>
-        <p className="subtitle">Discover over 1,000+ career paths mapped to your skills.</p>
+        <p className="subtitle">Discover career paths mapped to your cognitive strengths and skills.</p>
       </div>
 
       <div className="explore-controls">
@@ -95,8 +100,8 @@ export default function ExploreCareers() {
 
       <div className="directory-grid">
         {filteredCareers.map(career => (
-          <div key={career.id} className="directory-card">
-            <div className="directory-header">
+          <div key={career.id} className="directory-card" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            <div className="directory-header" style={{ marginBottom: 0 }}>
               <span className="category-pill">{career.category}</span>
               <button 
                 className={`save-btn ${saved.includes(career.id) ? 'active' : ''}`}
@@ -106,11 +111,18 @@ export default function ExploreCareers() {
                 <Bookmark size={18} fill={saved.includes(career.id) ? 'currentColor' : 'none'} />
               </button>
             </div>
-            <h3>{career.title}</h3>
-            <div className="directory-stats">
+            <h3 style={{ margin: 0 }}>{career.title}</h3>
+            <div className="directory-stats" style={{ marginBottom: '0.5rem' }}>
               <span><TrendingUp size={14}/> {career.growth}</span>
               <span><Briefcase size={14}/> {career.salary}</span>
             </div>
+            <button
+              className="btn btn-outline"
+              style={{ width: '100%', justifyContent: 'center', marginTop: 'auto' }}
+              onClick={() => navigate(`/roadmap/${career.id}`)}
+            >
+              View Roadmap <ChevronRight size={16} />
+            </button>
           </div>
         ))}
         

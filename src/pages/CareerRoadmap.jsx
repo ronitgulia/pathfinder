@@ -17,7 +17,7 @@ import {
   getRoadmapMilestoneProgress, 
   toggleRoadmapMilestone 
 } from '../utils/storage';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../context/useToast';
 import './CareerRoadmap.css';
 
 export default function CareerRoadmap() {
@@ -73,8 +73,15 @@ export default function CareerRoadmap() {
     }
   };
 
-  const handleShareRoadmap = () => {
-    addToast('Roadmap link copied to clipboard! Share with mentors or parents.', 'success');
+  const handleShareRoadmap = async () => {
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        await navigator.clipboard.writeText(window.location.href);
+      }
+      addToast('Roadmap link copied to clipboard! Share with mentors or parents.', 'success');
+    } catch {
+      addToast('Roadmap ready to share! Copy the link from your browser address bar.', 'info');
+    }
   };
 
   // Calculate total and completed count
@@ -90,7 +97,7 @@ export default function CareerRoadmap() {
           <ArrowLeft size={18} /> Back to Recommendations
         </button>
 
-        <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+        <div className="roadmap-header-actions">
           <select 
             style={{
               padding: '0.5rem 1rem',

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Sparkles, Mail, Lock, User as UserIcon, GraduationCap, ArrowRight } from 'lucide-react';
-import { useAuth } from '../context/AuthContext';
-import { useToast } from '../context/ToastContext';
+import { useAuth } from '../context/useAuth';
+import { useToast } from '../context/useToast';
 import './Auth.css';
 
 export default function Auth() {
@@ -15,9 +15,15 @@ export default function Auth() {
   });
   const [isLoading, setIsLoading] = useState(false);
   
-  const { login, register } = useAuth();
+  const { login, register, isAuthenticated } = useAuth();
   const { addToast } = useToast();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate('/dashboard', { replace: true });
+    }
+  }, [isAuthenticated, navigate]);
 
   const handleChange = (e) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -155,7 +161,7 @@ export default function Auth() {
 
           <div className="auth-toggle">
             {isLogin ? "Don't have an account? " : "Already have an account? "}
-            <button className="link-btn" onClick={() => setIsLogin(!isLogin)}>
+            <button type="button" className="link-btn" onClick={() => setIsLogin(!isLogin)}>
               {isLogin ? 'Sign up' : 'Log in'}
             </button>
           </div>

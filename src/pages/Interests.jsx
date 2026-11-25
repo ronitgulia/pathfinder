@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Compass } from 'lucide-react';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../context/useToast';
 import { setAssessmentCompleted } from '../utils/storage';
 import './AptitudeTest.css'; // Reusing quiz styles
 
@@ -52,7 +52,7 @@ export default function Interests() {
 
       <div className="question-card" style={{ textAlign: 'center', padding: '4rem 2rem' }}>
         <h2 className="question-text">{question.text}</h2>
-        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', gap: '1rem', marginTop: '2rem', flexWrap: 'wrap' }}>
           <button className="btn btn-outline" onClick={() => handleSelect('Dislike')}>Strongly Dislike</button>
           <button className="btn btn-outline" onClick={() => handleSelect('Neutral')}>Neutral</button>
           <button className="btn btn-primary" onClick={() => handleSelect('Like')}>Strongly Like</button>

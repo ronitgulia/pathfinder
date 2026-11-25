@@ -13,6 +13,24 @@
   flex-wrap: wrap;
 }
 
+.roadmap-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .roadmap-hero,
+  .roadmap-phase-body {
+    padding: 1.25rem;
+  }
+
+  .roadmap-header-actions select {
+    width: 100%;
+  }
+}
+
 .roadmap-back-btn {
   display: inline-flex;
   align-items: center;
@@ -275,3 +293,4 @@
   font-weight: 500;
   border: 1px solid rgba(59, 130, 246, 0.2);
 }
+

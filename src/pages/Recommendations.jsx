@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Bookmark, Briefcase, GraduationCap, TrendingUp, ChevronRight, CheckCircle2 } from 'lucide-react';
-import { useToast } from '../context/ToastContext';
+import { useToast } from '../context/useToast';
 import { getSavedCareers, saveCareer } from '../utils/storage';
 import './Recommendations.css';
 

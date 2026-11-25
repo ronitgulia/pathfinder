@@ -10,13 +10,18 @@
   --color-secondary: #10b981; /* Emerald green */
   --color-secondary-light: #34d399;
   --color-accent: #3b82f6; /* Cerulean blue */
+  --color-success: #10b981;
+  --color-error: #ef4444;
   
   --color-bg-body: #f8fafc;
   --color-bg-card: #ffffff;
   --color-bg-sidebar: #f8fafc;
   --color-bg-sidebar-active: #1e3a8a;
+  --color-background: #f8fafc;
+  --color-surface: #ffffff;
   
   --color-text-main: #1e293b;
+  --color-text: #1e293b;
   --color-text-muted: #64748b;
   --color-text-inverse: #ffffff;
   
